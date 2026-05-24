@@ -7667,6 +7667,22 @@ namespace pugi
 
 		_root = NULL;
 	}
+	
+	PUGI_IMPL_FN size_t xml_document::get_memory_size() const
+	{
+		impl::xml_memory_page * root_page = PUGI_IMPL_GETPAGE(_root);
+		assert(root_page && !root_page->prev);
+		assert(reinterpret_cast<char *>(root_page) >= _memory && reinterpret_cast<char *>(root_page) < _memory + sizeof(_memory));
+
+		size_t size = 0;
+		for (impl::xml_memory_page * page = root_page->next; page; )
+		{
+			size += page->busy_size;
+			impl::xml_memory_page * next = page->next;
+			page = next;
+		}
+		return size;
+	}
 
 #ifdef PUGIXML_HAS_MOVE
 	PUGI_IMPL_FN void xml_document::_move(xml_document& rhs) PUGIXML_NOEXCEPT_IF_NOT_COMPACT
